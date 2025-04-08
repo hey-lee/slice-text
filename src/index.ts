@@ -79,7 +79,7 @@ export type Slicing = (text: string, searchWords: string[], match?: (word: strin
 export const slicing: Slicing = (
   text,
   searchWords,
-  match = (word) => new RegExp(word, `gi`),
+  match = (word) => new RegExp(`\\b${word}\\b`, `gi`),
 ) => {
   return Array.from(new Set(searchWords))
     .filter(word => !!word)
