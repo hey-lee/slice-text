@@ -81,7 +81,7 @@ Main function that combines all slicing operations.
 |:-:|:-:|:-:|:-:|:-:|
 |`text`| `string` | ✅ |  | The input text to be sliced |
 |`words`| `string[]` | ✅ |  | Array of words to search for |
-|`match`| `Function` |  | `(word) => new RegExp(word, 'gi')` | Optional custom matching function |
+|`match`| `Function` |  | `(word) => new RegExp('\\b${word}\\b', 'gi')` | Optional custom matching function |
 
 
 #### Returns `Slice[]`

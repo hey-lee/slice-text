@@ -8,20 +8,6 @@
  * @property {number} end - The ending index of the slice
  * @property {boolean} [matched] - Optional flag indicating if this slice matches search criteria
  * 
- * @example
- * // Basic slice without matched flag
- * const slice: Slice = {
- *   start: 0,
- *   end: 5
- * };
- * 
- * @example
- * // Slice with matched flag
- * const matchedSlice: Slice = {
- *   start: 10,
- *   end: 15,
- *   matched: true
- * };
  */
 export interface Slice {
   start: number
@@ -36,14 +22,7 @@ export interface Slice {
  * @param {string[]} searchWords - Array of words to search for
  * @param {(word: string) => RegExp} [match] - Optional function to customize how words are matched
  * @returns {Slice[]} Array of slices representing matched positions
- * 
- * @example
- * const text = "Hello world";
- * const searchWords = ["Hello"];
- * const customMatch = (word: string) => new RegExp(word, "i");
- * 
- * const slices = slicing(text, searchWords, customMatch);
- * // Returns: [{ start: 0, end: 5 }]
+ *
  */
 export type Slicing = (text: string, searchWords: string[], match?: (word: string) => RegExp) => Slice[]
 
@@ -62,6 +41,7 @@ export type Slicing = (text: string, searchWords: string[], match?: (word: strin
  * const result = slicing(text, searchWords);
  * // Result:
  * // [
+ * //   { start: 0, end: 5 },
  * //   { start: 13, end: 18 },
  * //   { start: 6, end: 11 }
  * // ]
