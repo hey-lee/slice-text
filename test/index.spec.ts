@@ -7,8 +7,22 @@ import {
 } from '../src'
 
 describe('slicing', () => {
+  it('should return empty array for empty text', () => {
+    const text = ''
+    const words = ['hello']
+    const result = slicing(text, words)
+    expect(result).toEqual([])
+  })
+
   it('should return empty array for empty words', () => {
     const text = 'Hello world'
+    const words = []
+    const result = slicing(text, words)
+    expect(result).toEqual([])
+  })
+
+  it('should return empty array for empty text and empty words', () => {
+    const text = ''
     const words = []
     const result = slicing(text, words)
     expect(result).toEqual([])
@@ -29,28 +43,38 @@ describe('slicing', () => {
       { start: 0, end: 5 },
       { start: 13, end: 18 },
       { start: 0, end: 5 },
-      { start: 13, end: 18 }
+      { start: 13, end: 18 },
     ])
   })
 
-  it('should handle case-insensitive matching', () => {
+  it('should deduplicate words', () => {
+    const text = 'hello hello hello'
+    const words = ['hello', 'hello']
+    const result = slicing(text, words)
+
+    expect(result).toHaveLength(3)
+  })
+
+  it('should handle case-insensitive matching by default', () => {
     const text = 'Hello World'
     const words = ['hello', 'world']
-    const match = (word: string) => new RegExp(word, 'gi')
-    const result = slicing(text, words, match)
+    const result = slicing(text, words)
+
     expect(result).toEqual([
       { start: 0, end: 5 },
-      { start: 6, end: 11 }
+      { start: 6, end: 11 },
     ])
   })
 
-  it('should handle overlapping matches', () => {
-    const text = 'aaaaa'
-    const words = ['aa']
-    const result = slicing(text, words)
+  it('should handle case-sensitive matching', () => {
+    const text = 'Hello World hello world'
+    const words = ['hello', 'world']
+    const match = (word: string) => new RegExp(word, 'g')
+    const result = slicing(text, words, match)
+
     expect(result).toEqual([
-      { start: 0, end: 2 },
-      { start: 2, end: 4 }
+      { start: 12, end: 17 },
+      { start: 18, end: 23 },
     ])
   })
 
@@ -60,7 +84,7 @@ describe('slicing', () => {
     const result = slicing(text, words)
     expect(result).toEqual([
       { start: 0, end: 5 },
-      { start: 6, end: 11 }
+      { start: 6, end: 11 },
     ])
   })
 })
@@ -75,7 +99,7 @@ describe('mergeOverlap', () => {
   it('should merge adjacent slices', () => {
     const slices = [
       { start: 0, end: 5 },
-      { start: 5, end: 10 }
+      { start: 5, end: 10 },
     ]
     const result = mergeOverlap(slices)
     expect(result).toEqual([{ start: 0, end: 10 }])
@@ -84,45 +108,45 @@ describe('mergeOverlap', () => {
   it('should merge overlapping slices', () => {
     const slices = [
       { start: 0, end: 5 },
-      { start: 3, end: 8 }
+      { start: 3, end: 8 },
     ]
     const result = mergeOverlap(slices)
     expect(result).toEqual([{ start: 0, end: 8 }])
   })
 
-  it('should handle non-overlapping slices', () => {
+  it('should not merge non-overlapping slices', () => {
     const slices = [
       { start: 0, end: 5 },
-      { start: 10, end: 15 }
+      { start: 10, end: 15 },
     ]
     const result = mergeOverlap(slices)
     expect(result).toEqual([
       { start: 0, end: 5 },
-      { start: 10, end: 15 }
+      { start: 10, end: 15 },
     ])
   })
 })
 
 describe('fillSliceGaps', () => {
   it('should handle empty slices', () => {
-    const slices = []
-    const textLength = 10
-    const result = fillSliceGaps(slices, textLength)
+    const result = fillSliceGaps([], 10)
+
     expect(result).toEqual([{ start: 0, end: 10, matched: false }])
   })
 
   it('should mark matched and unmatched regions', () => {
     const slices = [
       { start: 0, end: 5 },
-      { start: 10, end: 15 }
+      { start: 10, end: 15 },
     ]
     const textLength = 20
     const result = fillSliceGaps(slices, textLength)
+
     expect(result).toEqual([
       { start: 0, end: 5, matched: true },
       { start: 5, end: 10, matched: false },
       { start: 10, end: 15, matched: true },
-      { start: 15, end: 20, matched: false }
+      { start: 15, end: 20, matched: false },
     ])
   })
 
@@ -130,40 +154,78 @@ describe('fillSliceGaps', () => {
     const slices = [{ start: 0, end: 10 }]
     const textLength = 10
     const result = fillSliceGaps(slices, textLength)
+
+    expect(result).toEqual([{ start: 0, end: 10, matched: true }])
+  })
+
+  it('should handle zero text length', () => {
+    const slices = [{ start: 0, end: 5 }]
+    const result = fillSliceGaps(slices, 0)
+
+    expect(result).toEqual([])
+  })
+
+  it('should not create zero-length slices', () => {
+    const slices = [
+      { start: 0, end: 5 },
+      { start: 5, end: 10 },
+    ]
+    const result = fillSliceGaps(slices, 10)
+
     expect(result).toEqual([
-      { start: 0, end: 10, matched: true }
+      { start: 0, end: 5, matched: true },
+      { start: 5, end: 10, matched: true },
     ])
   })
 })
 
 describe('sliceText', () => {
+  it('should handle empty text', () => {
+    const text = ''
+    const words = ['hello']
+    const result = sliceText(text, words)
+
+    expect(result).toEqual([])
+  })
+
   it('should handle empty words', () => {
     const text = 'Hello world'
     const words = []
     const result = sliceText(text, words)
+
     expect(result).toEqual([{ start: 0, end: 11, matched: false }])
+  })
+
+  it('should handle empty text and empty words', () => {
+    const text = ''
+    const words = []
+    const result = sliceText(text, words)
+
+    expect(result).toEqual([])
   })
 
   it('should find matches and update matched regions', () => {
     const text = 'Hello world, hello universe'
     const words = ['Hello', 'hello']
     const result = sliceText(text, words)
+
     expect(result).toEqual([
       { start: 0, end: 5, matched: true },
       { start: 5, end: 13, matched: false },
       { start: 13, end: 18, matched: true },
-      { start: 18, end: 27, matched: false }
+      { start: 18, end: 27, matched: false },
     ])
   })
 
-  it('should handle case sensitive matching', () => {
+  it('should handle case-sensitive matching', () => {
     const text = 'Hello World'
     const words = ['Hello', 'hello']
     const match = (word: string) => new RegExp(word, 'g')
     const result = sliceText(text, words, match)
+
     expect(result).toEqual([
       { start: 0, end: 5, matched: true },
-      { start: 5, end: 11, matched: false }
+      { start: 5, end: 11, matched: false },
     ])
   })
 
@@ -172,20 +234,43 @@ describe('sliceText', () => {
     const words = ['hello', 'world']
     const match = (word: string) => new RegExp(word, 'gi')
     const result = sliceText(text, words, match)
+
     expect(result).toEqual([
       { start: 0, end: 5, matched: true },
       { start: 5, end: 6, matched: false },
-      { start: 6, end: 11, matched: true }
+      { start: 6, end: 11, matched: true },
     ])
   })
 
-  it('should handle overlapping matches', () => {
+  it('should handle overlapping matches in word boundary mode', () => {
     const text = 'aaaaa'
     const words = ['aa']
     const result = sliceText(text, words)
+
     expect(result).toEqual([
-      { start: 0, end: 4, matched: true },
-      { start: 4, end: 5, matched: false }
+      { start: 0, end: 5, matched: false },
+    ])
+  })
+
+  it('should handle overlapping matches in word boundary start', () => {
+    const text = 'aaaaa'
+    const words = ['aa']
+    const result = sliceText(text, words, word => new RegExp(`\\b${word}`, 'g'))
+
+    expect(result).toEqual([
+      { start: 0, end: 2, matched: true },
+      { start: 2, end: 5, matched: false },
+    ])
+  })
+
+  it('should handle overlapping matches in word boundary end', () => {
+    const text = 'aaaaa'
+    const words = ['aa']
+    const result = sliceText(text, words, word => new RegExp(`${word}\\b`, 'g'))
+
+    expect(result).toEqual([
+      { start: 0, end: 3, matched: false },
+      { start: 3, end: 5, matched: true },
     ])
   })
 })
