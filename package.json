@@ -1,0 +1,71 @@
+{
+  "name": "slice-text",
+  "version": "0.0.1",
+  "description": "A utility for slicing text based on search words.",
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/index.cjs",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "dev": "tsup --watch",
+    "build": "tsup",
+    "test": "vitest"
+  },
+  "tsup": {
+    "target": "es5",
+    "entry": {
+      "index": "src/index.ts"
+    },
+    "format": [
+      "esm",
+      "cjs"
+    ],
+    "dts": true,
+    "clean": true,
+    "sourcemap": true,
+    "splitting": false
+  },
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "keywords": [
+    "slice",
+    "text",
+    "words",
+    "mark",
+    "match",
+    "highlight",
+    "splitter",
+    "replace",
+    "regexp"
+  ],
+  "author": "DBL <me@banli.co>",
+  "homepage": "https://github.com/hey-lee/slice-text",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hey-lee/slice-text.git"
+  },
+  "bugs": {
+    "url": "https://github.com/hey-lee/slice-text/issues"
+  },
+  "devDependencies": {
+    "@swc/core": "^1.5.7",
+    "tsup": "^8.0.2",
+    "typescript": "^5.7.2",
+    "vitest": "^3.1.1"
+  }
+}
