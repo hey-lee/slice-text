@@ -195,8 +195,9 @@ export const mergeOverlap = (slices: Slice[]) => {
 export const fillSliceGaps = (slices: Slice[],
   textLength: number = 0,
 ) => {
+  if (textLength === 0) return []
+
   const matchedSlices: Slice[] = []
-  
   const push = (start: number, end: number, matched: boolean) => {
     if (end - start > 0) {
       matchedSlices.push({
