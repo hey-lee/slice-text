@@ -73,8 +73,6 @@ console.log(markedText)
 
 ## API
 
-### Interfaces
-
 ### `sliceText`
 
 Processes text to find matches for search words and returns an array of slices with matched status.
@@ -119,14 +117,6 @@ Optional configuration object or match function:
 
 
 #### Returns `Slice[]`
-
-```ts
-interface Slice {
-  start: number
-  end: number
-  matched?: boolean
-}
-```
 
 ## License
 
