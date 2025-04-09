@@ -17,13 +17,46 @@ export interface Slice {
   matched?: boolean
 }
 
+/**
+ * Function type that takes a word string and returns a RegExp for matching.
+ * Used to customize how words are matched in the text.
+ * 
+ * @param {string} word - The word to create a RegExp pattern for
+ * @returns {RegExp} A regular expression for matching the word
+ * 
+ * @example
+ * const match: Match = (word) => new RegExp(word, 'gi');
+ * const pattern = match('hello');
+ * // Returns: /hello/gi
+ */
+
 type Match = (word: string) => RegExp
 
+/**
+ * Interface for configuring text slicing options.
+ * 
+ * @interface
+ * @property {(boolean | 'start' | 'end')} [boundary] - Controls word boundary matching:
+ *   - `true`: Match whole words with boundaries on both sides
+ *   - `'start'`: Match words with boundary at start
+ *   - `'end'`: Match words with boundary at end
+ *   - `false` or `undefined`: No word boundary matching
+ * @property {boolean} [caseSensitive] - Controls case sensitivity of matching:
+ *   - `true`: Matches are case-sensitive
+ *   - `false` or `undefined`: Matches are case-insensitive
+ */
 interface Options {
   boundary?: boolean | 'start' | 'end'
   caseSensitive?: boolean
 }
 
+/**
+ * Type representing either configuration options for text slicing or a custom match function.
+ * Can be either an Options object with boundary and case sensitivity settings,
+ * or a Match function that returns a RegExp for custom word matching.
+ * 
+ * @typedef {Options | Match} OptionsOrMatch
+ */
 type OptionsOrMatch = Options | Match
 /**
  * Type definition for a text slicing function that finds matches for search words in text.

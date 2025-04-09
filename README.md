@@ -73,15 +73,49 @@ console.log(markedText)
 
 ## API
 
+### Interfaces
+
 ### `sliceText`
 
-Main function that combines all slicing operations.
+Processes text to find matches for search words and returns an array of slices with matched status.
 
-|Parameter|Type|Required|Default|Description|
-|:-:|:-:|:-:|:-:|:-:|
-|`text`| `string` | ✅ |  | The input text to be sliced |
-|`words`| `string[]` | ✅ |  | Array of words to search for |
-|`match`| `Function` |  | `(word) => new RegExp('\\b${word}\\b', 'gi')` | Optional custom matching function |
+```ts
+export interface Slice {
+  start: number
+  end: number
+  matched?: boolean
+}
+
+type Match = (word: string) => RegExp
+
+interface Options {
+  boundary?: boolean | 'start' | 'end'
+  caseSensitive?: boolean
+}
+
+type OptionsOrMatch = Options | Match
+
+function sliceText(text: string, words: string[], options?: OptionsOrMatch): Slice[]
+```
+
+#### `text`
+
+Type: `string`
+The input text to be sliced
+
+#### `words`
+
+Type: `string[]`
+Array of words to search for
+
+#### `options`
+
+Type: `OptionsOrMatch?`
+Optional configuration object or match function:
+ - If object: Configuration with `boundary` and case `sensitivity` options
+ - If function: Custom matching function that returns a `RegExp`
+
+ Returns: `Slice[]` Array of slices representing matched positions in the text
 
 
 #### Returns `Slice[]`
