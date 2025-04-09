@@ -1,4 +1,6 @@
 
+import { pattern } from './fns'
+
 /**
  * Interface representing a slice of text with start and end positions.
  * Optionally includes a matched flag to indicate if this slice matches search criteria.
@@ -15,16 +17,25 @@ export interface Slice {
   matched?: boolean
 }
 
+type Match = (word: string) => RegExp
+
+interface Options {
+  boundary?: boolean | 'start' | 'end'
+  caseSensitive?: boolean
+}
+
+type OptionsOrMatch = Options | Match
 /**
  * Type definition for a text slicing function that finds matches for search words in text.
  * 
  * @param {string} text - The input text to search within
  * @param {string[]} searchWords - Array of words to search for
- * @param {(word: string) => RegExp} [match] - Optional function to customize how words are matched
- * @returns {Slice[]} Array of slices representing matched positions
- *
+ * @param {OptionsOrMatch} [options] - Optional configuration object or match function:
+ *   - If object: Configuration with boundary and case sensitivity options
+ *   - If function: Custom matching function that returns a RegExp
+ * @returns {Slice[]} Array of slices representing matched positions in the text
  */
-export type Slicing = (text: string, searchWords: string[], match?: (word: string) => RegExp) => Slice[]
+export type Slicing = (text: string, searchWords: string[], options?: OptionsOrMatch) => Slice[]
 
 /**
  * Creates slices of text based on search words.
@@ -59,8 +70,17 @@ export type Slicing = (text: string, searchWords: string[], match?: (word: strin
 export const slicing: Slicing = (
   text,
   searchWords,
-  match = (word) => new RegExp(`\\b${word}\\b`, `gi`),
+  options = (word: string) => new RegExp(`\\b${word}\\b`, 'gi'),
 ) => {
+  let match: Match
+  if (typeof options === 'function') {
+    match = options
+  } else {
+    match = (word) => {
+      word = options?.boundary ? pattern(word, options?.boundary) : word
+      return new RegExp(word, options?.caseSensitive ? 'g' : 'gi')
+    }
+  }
   return Array.from(new Set(searchWords))
     .filter(word => !!word)
     .map((word) => word)
@@ -71,7 +91,7 @@ export const slicing: Slicing = (
       while (matched = regex.exec(text)) {
         const start = matched.index
         const end = regex.lastIndex
-        
+
         if (end > start) {
           slices.push({
             start,
@@ -123,7 +143,7 @@ export const mergeOverlap = (slices: Slice[]) => {
 
   for (let i = 1; i < sortedSlices.length; i++) {
     const next = sortedSlices[i]
-    
+
     if (current && next) {
       if (next.start <= current.end) {
         current = {
@@ -207,13 +227,17 @@ export const fillSliceGaps = (slices: Slice[],
 
 
 /**
- * Processes text to find matches for search words and returns slices with matched status.
- * This function combines slicing, overlap merging, and gap filling operations.
+ * Processes text to find matches for search words and returns an array of slices with matched status.
+ * This function implements the {@link Slicing} interface, combining slicing, overlap merging, and gap filling operations.
  * 
  * @param {string} text - The input text to search within
  * @param {string[]} searchWords - Array of words to search for
- * @param {(word: string) => RegExp} [match] - Optional function to customize how words are matched
- * @returns {Slice[]} Array of slices with matched status and filled gaps
+ * @param {OptionsOrMatch} [options] - Optional configuration or custom matching function:
+ *   - If object: Configuration with the following options:
+ *     - `boundary`: Controls word boundary matching (`boolean`, `'start'`, or `'end'`)
+ *     - `caseSensitive`: Controls case sensitivity of the search (`boolean`)
+ *   - If function: Custom matching function that takes a word and returns a RegExp
+ * @returns {Slice[]} Array of slices representing matched positions in the text, with gaps filled and overlaps merged
  * 
  * @example
  * // Basic usage with multiple search words
@@ -239,6 +263,6 @@ export const fillSliceGaps = (slices: Slice[],
  * //   { start: 11, end: 17, matched: false }   // " WORLD"
  * // ]
  */
-export const sliceText: Slicing = (text, searchWords, match) => {
-  return fillSliceGaps(mergeOverlap(slicing(text, searchWords, match)), text.length)
+export const sliceText: Slicing = (text, searchWords, options) => {
+  return fillSliceGaps(mergeOverlap(slicing(text, searchWords, options)), text.length)
 }
