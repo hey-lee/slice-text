@@ -87,6 +87,69 @@ describe('slicing', () => {
       { start: 6, end: 11 },
     ])
   })
+
+  describe('slicing options parameter', () => {
+    const text = 'Hello world, hello there. World is nice.'
+
+    it('should match case-insensitively by default', () => {
+      const searchWords = ['hello', 'world']
+      const result = slicing(text, searchWords)
+
+      expect(result).toContainEqual({ start: 0, end: 5 }) // "Hello"
+      expect(result).toContainEqual({ start: 6, end: 11 }) // "world"
+      expect(result).toContainEqual({ start: 13, end: 18 }) // "hello"
+      expect(result).toContainEqual({ start: 26, end: 31 }) // "World"
+    })
+
+    it('should respect case sensitivity when specified', () => {
+      const searchWords = ['hello', 'world']
+      const result = slicing(text, searchWords, { caseSensitive: true })
+
+      // Should only match lowercase instances
+      expect(result).toContainEqual({ start: 13, end: 18 }) // "hello"
+      expect(result).toContainEqual({ start: 6, end: 11 }) // "world"
+
+      // Should not match capitalized instances
+      expect(result).not.toContainEqual({ start: 0, end: 5 }) // "Hello"
+      expect(result).not.toContainEqual({ start: 26, end: 31 }) // "World"
+    })
+
+    it('should respect word boundaries when boundary is true', () => {
+      const text = 'Hello worldly, hello there. Worldwide is nice.'
+      const searchWords = ['world']
+      const result = slicing(text, searchWords, { boundary: true })
+      
+      expect(result).toEqual([])
+    })
+
+    it('should respect start boundary when specified', () => {
+      const text = 'Hello worldly, hello there. Worldwide is nice.'
+      const searchWords = ['world']
+      const result = slicing(text, searchWords, { boundary: 'start' })
+
+      expect(result).toEqual([
+        { start: 6, end: 13 }, // "worldly"
+        { start: 28, end: 37 }, // "Worldwide"
+      ])
+    })
+
+    it('should respect end boundary when specified', () => {
+      const text = 'The old world, a microworld example'
+      const searchWords = ['world']
+      const result = slicing(text, searchWords, { boundary: 'end' })
+
+      expect(result).toContainEqual({ start: 17, end: 27 })
+    })
+
+    it('should handle custom match function', () => {
+      const text = 'Hello world, hello there. World is nice.'
+      const searchWords = ['hello']
+      const match = (word: string) => new RegExp(word, 'g') // case-sensitive
+      const result = slicing(text, searchWords, match)
+
+      expect(result).toContainEqual({ start: 13, end: 18 }) // "hello"
+    })
+  })
 })
 
 describe('mergeOverlap', () => {
