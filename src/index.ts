@@ -31,6 +31,7 @@ export interface Slice {
  */
 
 type Match = (word: string) => RegExp
+const defaultMatch: Match = (word: string) => new RegExp(`\\b${escapeRegex(word)}\\b`, 'gi')
 
 /**
  * Interface for configuring text slicing options.
@@ -132,10 +133,9 @@ export const slicing: Slicing = (
     caseSensitive: false,
   },
 ) => {
-  let match: Match = (word: string) => new RegExp(`\\b${escapeRegex(word)}\\b`, 'gi')
-  if (typeof options === 'function') {
-    match = options
-  } else {
+  let match: Match = defaultMatch
+  if (typeof options === 'function') match = options
+  if (typeof options === 'object' && !!options) {
     match = (word) => {
       word = options.escape ? escapeRegex(word) : word
       word = options.boundary ? pattern(word, options.boundary) : word
