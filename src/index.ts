@@ -300,9 +300,14 @@ export const fillSliceGaps = (slices: Slice[],
  * @param {string[]} searchWords - Array of words to search for
  * @param {OptionsOrMatch} [options] - Optional configuration or custom matching function:
  *   - If object: Configuration with the following options:
- *     - `boundary`: Controls word boundary matching (`boolean`, `'start'`, or `'end'`)
- *     - `caseSensitive`: Controls case sensitivity of the search (`boolean`)
- *   - If function: Custom matching function that takes a word and returns a RegExp
+ *     - `escape` (boolean): When true, escapes special regex characters in search words, default is `true`.
+ *     - `boundary` (boolean | 'start' | 'end'): Controls word boundary matching, default is `true`.
+ *       - `true`: Matches whole words with boundaries on both sides
+ *       - `'start'`: Matches words with boundary at start
+ *       - `'end'`: Matches words with boundary at end
+ *       - `false`: No word boundary matching
+ *     - `caseSensitive` (boolean): When true, matches are case-sensitive
+ *   - If function: Custom matching function that returns a RegExp
  * @returns {Slice[]} Array of slices representing matched positions in the text, with gaps filled and overlaps merged
  * 
  * @example
