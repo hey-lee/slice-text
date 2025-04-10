@@ -1,6 +1,6 @@
 {
   "name": "slice-text",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "A utility for slicing text based on search words.",
   "license": "MIT",
   "type": "module",
