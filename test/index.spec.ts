@@ -1,10 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import {
-  slicing,
-  mergeOverlap,
-  fillSliceGaps,
-  sliceText,
-} from '../src'
+import { slicing, mergeOverlap, fillSliceGaps, sliceText } from '../src'
 
 describe('slicing', () => {
   it('should return empty array for empty text', () => {
@@ -89,65 +84,137 @@ describe('slicing', () => {
   })
 
   describe('slicing options parameter', () => {
+    describe('slicing with escape option', () => {
+      it('should match text with special regex characters when escape is true', () => {
+        const text = 'Hello (world)! How are you?'
+        const words = ['(world)']
+        const result = slicing(text, words, { escape: true })
+
+        expect(result).toEqual([
+          { start: 6, end: 13 }, // Matches "(world)"
+        ])
+      })
+
+      it('should handle multiple special characters in search word', () => {
+        const text = 'Testing [1.2.3] version'
+        const words = ['[1.2.3]']
+        const result = slicing(text, words, { escape: true })
+
+        expect(result).toEqual([
+          { start: 8, end: 15 }, // Matches "[1.2.3]"
+        ])
+      })
+
+      it('should handle regex metacharacters in search words', () => {
+        const text = 'Testing * and + and ? and .'
+        const words = ['*', '+', '?', '.']
+        const result = slicing(text, words, { escape: true })
+
+        expect(result).toEqual([
+          { start: 8, end: 9 }, // Matches "*"
+          { start: 14, end: 15 }, // Matches "+"
+          { start: 20, end: 21 }, // Matches "?"
+          { start: 26, end: 27 }, // Matches "."
+        ])
+      })
+
+      it('should handle combination of escaped and normal characters', () => {
+        const text = '*function(x) { return x + 1 }'
+        const words = ['*function(x)']
+        const result = slicing(text, words, { escape: true })
+
+        expect(result).toEqual([
+          { start: 0, end: 12 }, // Matches "Function(x)"
+        ])
+      })
+
+      it('should not escape when escape option is false', () => {
+        const text = 'Testing .* wildcards'
+        const words = ['.*']
+        const result = slicing(text, words, { escape: false })
+
+        expect(result).toEqual([
+          { start: 0, end: 20 }, // Matches ".*" as regex pattern
+        ])
+      })
+    })
+
     const text = 'Hello world, hello there. World is nice.'
+    describe('slicing with boundary option', () => {
+      it('should respect word boundaries when boundary is true', () => {
+        const text = 'Hello worldly, hello there. Worldwide is nice.'
+        const searchWords = ['world']
+        const result = slicing(text, searchWords, { boundary: true })
 
-    it('should match case-insensitively by default', () => {
-      const searchWords = ['hello', 'world']
-      const result = slicing(text, searchWords)
+        expect(result).toEqual([])
+      })
 
-      expect(result).toContainEqual({ start: 0, end: 5 }) // "Hello"
-      expect(result).toContainEqual({ start: 6, end: 11 }) // "world"
-      expect(result).toContainEqual({ start: 13, end: 18 }) // "hello"
-      expect(result).toContainEqual({ start: 26, end: 31 }) // "World"
+      it('should respect start boundary when specified', () => {
+        const text = 'Hello worldly, hello there. Worldwide is nice.'
+        const searchWords = ['world']
+        const result = slicing(text, searchWords, { boundary: 'start' })
+
+        expect(result).toEqual([
+          { start: 6, end: 13 }, // "worldly"
+          { start: 28, end: 37 }, // "Worldwide"
+        ])
+      })
+
+      it('should respect end boundary when specified', () => {
+        const text = 'The old world, a microworld example'
+        const searchWords = ['world']
+        const result = slicing(text, searchWords, { boundary: 'end' })
+
+        expect(result).toContainEqual({ start: 17, end: 27 })
+      })
+
+      it('should respect end boundary when specified', () => {
+        const text = 'prefix_word suffix_word'
+        const words = ['word']
+        const result = slicing(text, words, {
+          boundary: 'end',
+        })
+
+        expect(result).toEqual([
+          { start: 0, end: 11 },
+          { start: 12, end: 23 },
+        ])
+      })
     })
 
-    it('should respect case sensitivity when specified', () => {
-      const searchWords = ['hello', 'world']
-      const result = slicing(text, searchWords, { caseSensitive: true })
+    describe('slicing with caseSensitive option', () => {
+      it('should match case-insensitively by default', () => {
+        const searchWords = ['hello', 'world']
+        const result = slicing(text, searchWords)
 
-      // Should only match lowercase instances
-      expect(result).toContainEqual({ start: 13, end: 18 }) // "hello"
-      expect(result).toContainEqual({ start: 6, end: 11 }) // "world"
+        expect(result).toContainEqual({ start: 0, end: 5 }) // "Hello"
+        expect(result).toContainEqual({ start: 6, end: 11 }) // "world"
+        expect(result).toContainEqual({ start: 13, end: 18 }) // "hello"
+        expect(result).toContainEqual({ start: 26, end: 31 }) // "World"
+      })
 
-      // Should not match capitalized instances
-      expect(result).not.toContainEqual({ start: 0, end: 5 }) // "Hello"
-      expect(result).not.toContainEqual({ start: 26, end: 31 }) // "World"
+      it('should respect case sensitivity when specified', () => {
+        const searchWords = ['hello', 'world']
+        const result = slicing(text, searchWords, { caseSensitive: true })
+
+        // Should only match lowercase instances
+        expect(result).toContainEqual({ start: 13, end: 18 }) // "hello"
+        expect(result).toContainEqual({ start: 6, end: 11 }) // "world"
+
+        // Should not match capitalized instances
+        expect(result).not.toContainEqual({ start: 0, end: 5 }) // "Hello"
+        expect(result).not.toContainEqual({ start: 26, end: 31 }) // "World"
+      })
     })
+    describe('slicing with custom match function', () => {
+      it('should handle custom match function', () => {
+        const text = 'Hello world, hello there. World is nice.'
+        const searchWords = ['hello']
+        const match = (word: string) => new RegExp(word, 'g') // case-sensitive
+        const result = slicing(text, searchWords, match)
 
-    it('should respect word boundaries when boundary is true', () => {
-      const text = 'Hello worldly, hello there. Worldwide is nice.'
-      const searchWords = ['world']
-      const result = slicing(text, searchWords, { boundary: true })
-      
-      expect(result).toEqual([])
-    })
-
-    it('should respect start boundary when specified', () => {
-      const text = 'Hello worldly, hello there. Worldwide is nice.'
-      const searchWords = ['world']
-      const result = slicing(text, searchWords, { boundary: 'start' })
-
-      expect(result).toEqual([
-        { start: 6, end: 13 }, // "worldly"
-        { start: 28, end: 37 }, // "Worldwide"
-      ])
-    })
-
-    it('should respect end boundary when specified', () => {
-      const text = 'The old world, a microworld example'
-      const searchWords = ['world']
-      const result = slicing(text, searchWords, { boundary: 'end' })
-
-      expect(result).toContainEqual({ start: 17, end: 27 })
-    })
-
-    it('should handle custom match function', () => {
-      const text = 'Hello world, hello there. World is nice.'
-      const searchWords = ['hello']
-      const match = (word: string) => new RegExp(word, 'g') // case-sensitive
-      const result = slicing(text, searchWords, match)
-
-      expect(result).toContainEqual({ start: 13, end: 18 }) // "hello"
+        expect(result).toContainEqual({ start: 13, end: 18 }) // "hello"
+      })
     })
   })
 })
@@ -310,15 +377,17 @@ describe('sliceText', () => {
     const words = ['aa']
     const result = sliceText(text, words)
 
-    expect(result).toEqual([
-      { start: 0, end: 5, matched: false },
-    ])
+    expect(result).toEqual([{ start: 0, end: 5, matched: false }])
   })
 
   it('should handle overlapping matches in word boundary start', () => {
     const text = 'aaaaa'
     const words = ['aa']
-    const result = sliceText(text, words, word => new RegExp(`\\b${word}`, 'g'))
+    const result = sliceText(
+      text,
+      words,
+      (word) => new RegExp(`\\b${word}`, 'g')
+    )
 
     expect(result).toEqual([
       { start: 0, end: 2, matched: true },
@@ -329,7 +398,11 @@ describe('sliceText', () => {
   it('should handle overlapping matches in word boundary end', () => {
     const text = 'aaaaa'
     const words = ['aa']
-    const result = sliceText(text, words, word => new RegExp(`${word}\\b`, 'g'))
+    const result = sliceText(
+      text,
+      words,
+      (word) => new RegExp(`${word}\\b`, 'g')
+    )
 
     expect(result).toEqual([
       { start: 0, end: 3, matched: false },
