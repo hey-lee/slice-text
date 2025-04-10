@@ -1,5 +1,5 @@
 
-import { pattern } from './fns'
+import { pattern, escapeRegex } from './fns'
 
 /**
  * Interface representing a slice of text with start and end positions.
@@ -44,8 +44,12 @@ type Match = (word: string) => RegExp
  * @property {boolean} [caseSensitive] - Controls case sensitivity of matching:
  *   - `true`: Matches are case-sensitive
  *   - `false` or `undefined`: Matches are case-insensitive
+ * @property {boolean} [escape] - Controls if the search words should be escaped for use in a regular expression:
+ *   - `true`: Escape the search words
+ *   - `false` or `undefined`: Do not escape the search words
  */
 interface Options {
+  escape?: boolean
   boundary?: boolean | 'start' | 'end'
   caseSensitive?: boolean
 }
@@ -63,8 +67,11 @@ type OptionsOrMatch = Options | Match
  * 
  * @param {string} text - The input text to search within
  * @param {string[]} searchWords - Array of words to search for
- * @param {OptionsOrMatch} [options] - Optional configuration object or match function:
- *   - If object: Configuration with boundary and case sensitivity options
+ * @param {OptionsOrMatch} [options] - Optional configuration or match function:
+ *   - If object: Configuration with the following options:
+ *     - `escape`: Controls whether to escape special regex characters in search words
+ *     - `boundary`: Controls word boundary matching (true/false/'start'/'end')
+ *     - `caseSensitive`: Controls case sensitivity of matching
  *   - If function: Custom matching function that returns a RegExp
  * @returns {Slice[]} Array of slices representing matched positions in the text
  */
@@ -75,21 +82,37 @@ export type Slicing = (text: string, searchWords: string[], options?: OptionsOrM
  * 
  * @param {string} text - The input text to search within
  * @param {string[]} searchWords - Array of words to search for
- * @param {(word: string) => RegExp} [match] - Optional function to customize how words are matched
+ * @param {OptionsOrMatch} [options] - Optional configuration or match function:
+ *   - If object: Configuration with the following options:
+ *     - `escape` (boolean): When true, escapes special regex characters in search words, default is `true`.
+ *     - `boundary` (boolean | 'start' | 'end'): Controls word boundary matching, default is `true`.
+ *       - `true`: Matches whole words with boundaries on both sides
+ *       - `'start'`: Matches words with boundary at start
+ *       - `'end'`: Matches words with boundary at end
+ *       - `false`: No word boundary matching
+ *     - `caseSensitive` (boolean): When true, matches are case-sensitive
+ *   - If function: Custom matching function that returns a RegExp
  * @returns {Slice[]} Array of slices representing matched positions
  * 
  * @example
- * // Basic usage
- * const text = "Hello world, hello there";
- * const searchWords = ["hello", "world"];
- * const result = slicing(text, searchWords);
- * // Result:
- * // [
- * //   { start: 0, end: 5 },
- * //   { start: 13, end: 18 },
- * //   { start: 6, end: 11 }
+ * // Basic usage with default options (special characters escapes, word boundaries, case-insensitive)
+ * const text = "Hello world, hello there *";
+ * const words = ["hello", "world", "*"];
+ * const result = slicing(text, words);
+ * // Result: [
+ * //   { start: 0, end: 5 },    // "Hello"
+ * //   { start: 6, end: 11 },   // "world"
+ * //   { start: 13, end: 18 }   // "hello"
  * // ]
  * 
+ * @example
+ * // Using escape option for special characters
+ * const text = "*function(x) { return x; }";
+ * const words = ["*function(x)"];
+ * const result = slicing(text, words, { 
+ *   escape: true,
+ * });
+ * // Result: [{ start: 0, end: 12 }]
  * @example
  * // Custom case-sensitive matching
  * const text = "HELLO hello World";
@@ -103,15 +126,20 @@ export type Slicing = (text: string, searchWords: string[], options?: OptionsOrM
 export const slicing: Slicing = (
   text,
   searchWords,
-  options = (word: string) => new RegExp(`\\b${word}\\b`, 'gi'),
+  options = {
+    escape: true,
+    boundary: true,
+    caseSensitive: false,
+  },
 ) => {
-  let match: Match
+  let match: Match = (word: string) => new RegExp(`\\b${escapeRegex(word)}\\b`, 'gi')
   if (typeof options === 'function') {
     match = options
   } else {
     match = (word) => {
-      word = options?.boundary ? pattern(word, options?.boundary) : word
-      return new RegExp(word, options?.caseSensitive ? 'g' : 'gi')
+      word = options.escape ? escapeRegex(word) : word
+      word = options.boundary ? pattern(word, options.boundary) : word
+      return new RegExp(word, options.caseSensitive ? 'g' : 'gi')
     }
   }
   return Array.from(new Set(searchWords))
@@ -130,6 +158,11 @@ export const slicing: Slicing = (
             start,
             end,
           })
+        }
+ 
+        // FIXED: special regex characters in search words can cause infinite loop if `options.escape` is `false`
+        if (start === end) {
+          regex.lastIndex++
         }
       }
 
