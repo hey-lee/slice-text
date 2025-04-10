@@ -115,9 +115,6 @@ Optional configuration object or match function:
 
  Returns: `Slice[]` Array of slices representing matched positions in the text
 
-
-#### Returns `Slice[]`
-
 ## License
 
 MIT © [Lee](https://github.com/hey-lee)
