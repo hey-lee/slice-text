@@ -234,7 +234,7 @@ export const mergeOverlap = (slices: Slice[]) => {
  * 
  * @param {Slice[]} slices - Array of slices to update with matched status
  * @param {number} [textLength=0] - Total length of the text being processed
- * @returns {Slice[]} Array of slices with matched status and filled gaps
+ * @returns {Required<Slice>[]} Array of slices with matched status and filled gaps
  * 
  * @example
  * // Basic usage with matched slices
@@ -258,9 +258,10 @@ export const mergeOverlap = (slices: Slice[]) => {
  * //   { start: 0, end: 10, matched: false }    // Entire text marked as unmatched
  * // ]
  */
-export const fillSliceGaps = (slices: Slice[],
+export const fillSliceGaps = (
+  slices: Slice[],
   textLength: number = 0,
-) => {
+): Required<Slice>[] => {
   if (textLength === 0) return []
 
   const matchedSlices: Slice[] = []
@@ -288,7 +289,7 @@ export const fillSliceGaps = (slices: Slice[],
     push(startIndex, textLength, false)
   }
 
-  return matchedSlices
+  return matchedSlices as Required<Slice>[]
 }
 
 
@@ -308,7 +309,7 @@ export const fillSliceGaps = (slices: Slice[],
  *       - `false`: No word boundary matching
  *     - `caseSensitive` (boolean): When true, matches are case-sensitive
  *   - If function: Custom matching function that returns a RegExp
- * @returns {Slice[]} Array of slices representing matched positions in the text, with gaps filled and overlaps merged
+ * @returns {Required<Slice>[]} Array of slices representing matched positions in the text, with gaps filled and overlaps merged
  * 
  * @example
  * // Basic usage with multiple search words
@@ -334,6 +335,6 @@ export const fillSliceGaps = (slices: Slice[],
  * //   { start: 11, end: 17, matched: false }   // " WORLD"
  * // ]
  */
-export const sliceText: Slicing = (text, searchWords, options) => {
+export const sliceText: Slicing = (text, searchWords, options): Required<Slice>[] => {
   return fillSliceGaps(mergeOverlap(slicing(text, searchWords, options)), text.length)
 }
