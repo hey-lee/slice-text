@@ -84,6 +84,52 @@ describe('slicing', () => {
   })
 
   describe('slicing options parameter', () => {
+    describe('slicing function with falsy options', () => {
+      const text = 'Hello world'
+      const searchWords = ['hello']
+    
+      it('should handle undefined options', () => {
+        const result = slicing(text, searchWords, undefined)
+        
+        expect(result).toEqual([
+          { start: 0, end: 5 }
+        ])
+      })
+    
+      it('should handle null options', () => {
+        // @ts-expect-error Testing null input
+        const result = slicing(text, searchWords, null)
+        expect(result).toEqual([
+          { start: 0, end: 5 }
+        ])
+      })
+    
+      it('should handle empty object options', () => {
+        const result = slicing(text, searchWords, {})
+        expect(result).toEqual([
+          { start: 0, end: 5 }
+        ])
+      })
+    
+      it('should handle false boundary option', () => {
+        const result = slicing(text, searchWords, { boundary: false })
+        expect(result).toEqual([
+          { start: 0, end: 5 }
+        ])
+      })
+    
+      it('should handle all falsy options', () => {
+        const result = slicing(text, searchWords, {
+          boundary: false,
+          escape: false,
+          caseSensitive: false
+        })
+        expect(result).toEqual([
+          { start: 0, end: 5 }
+        ])
+      })
+    })
+
     describe('slicing with escape option', () => {
       it('should match text with special regex characters when escape is true', () => {
         const text = 'Hello (world)! How are you?'
