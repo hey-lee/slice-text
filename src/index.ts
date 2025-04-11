@@ -76,7 +76,7 @@ type OptionsOrMatch = Options | Match
  *   - If function: Custom matching function that returns a RegExp
  * @returns {Slice[]} Array of slices representing matched positions in the text
  */
-export type Slicing = (text: string, searchWords: string[], options?: OptionsOrMatch) => Slice[]
+export type Slicing<T> = (text: string, searchWords: string[], options?: OptionsOrMatch) => T[]
 
 /**
  * Creates slices of text based on search words.
@@ -124,7 +124,7 @@ export type Slicing = (text: string, searchWords: string[], options?: OptionsOrM
  * //   { start: 6, end: 11 }    // Only matches lowercase "hello"
  * // ]
  */
-export const slicing: Slicing = (
+export const slicing: Slicing<Slice> = (
   text,
   searchWords,
   options = {
@@ -335,6 +335,6 @@ export const fillSliceGaps = (
  * //   { start: 11, end: 17, matched: false }   // " WORLD"
  * // ]
  */
-export const sliceText: Slicing = (text, searchWords, options): Required<Slice>[] => {
+export const sliceText: Slicing<Required<Slice>> = (text, searchWords, options) => {
   return fillSliceGaps(mergeOverlap(slicing(text, searchWords, options)), text.length)
 }
