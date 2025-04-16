@@ -1,5 +1,7 @@
 
-A utility for slicing text based on search words, with support for overlapping matches and customizable matching patterns.
+A utility for slicing text based on search words, with support for overlapping matches and customizable matching patterns. shared by [react-mark-words](https://github.com/hey-lee/react-mark-words) and [vue-mark-words](https://github.com/hey-lee/vue-mark-words).
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://raw.githubusercontent.com/hey-lee/slice-text/refs/heads/main/LICENSE) ![NPM Downloads](https://img.shields.io/npm/dm/slice-text) ![npm bundle size](https://img.shields.io/bundlephobia/min/slice-text)
 
 ## Features
 
@@ -12,9 +14,7 @@ A utility for slicing text based on search words, with support for overlapping m
 ## Installation
 
 ```bash
-yarn add slice-text
 npm i slice-text
-pnpm i slice-text
 ```
 ## Usage
 
